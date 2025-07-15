@@ -1,7 +1,7 @@
 import express from "express";
 const app = express();
 import { JWT_SECRET } from "@repo/backend-common/config"
-import { CreateUserSchema, SigninSchema } from "@repo/common/types"
+import { CreateUserSchema, RoomSchema, SigninSchema } from "@repo/common/types"
 import { middleware } from "./middleware";
 
 app.get("/", (req, res) => {
@@ -35,7 +35,7 @@ app.post("/signin", (req, res) => {
 })
 
 app.post("/room", middleware, (req, res) => {
-    const data = CreateRoomSchema.safeParse(req.body);
+    const data = RoomSchema.safeParse(req.body);
     if (!data.success) {
         res.json({
         message: "Incorrect Inputs",
