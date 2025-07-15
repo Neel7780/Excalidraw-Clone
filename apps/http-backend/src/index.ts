@@ -3,6 +3,11 @@ const app = express();
 import { JWT_SECRET } from "@repo/backend-common/config"
 import { CreateUserSchema, RoomSchema, SigninSchema } from "@repo/common/types"
 import { middleware } from "./middleware";
+import { prismaClient } from "@repo/db/client"
+import bcrypt from "bcrypt"
+import jwt from "jsonwebtoken"
+
+app.use(express.json())
 
 app.get("/", (req, res) => {
     res.json({
@@ -10,41 +15,97 @@ app.get("/", (req, res) => {
     })
 })
 
-app.post("/signup", (req, res) => {
-    const data = CreateUserSchema.safeParse(req.body);
-    if(!data.success) {
+app.post("/signup", async (req, res) => {
+    const parsedData = CreateUserSchema.safeParse(req.body);
+    if(!parsedData.success) {
         res.json({
             message : "Invalid Inputs"
         })
+        console.log(parsedData.error)
         return;
     }
+    const hashedPwd = await bcrypt.hash(parsedData.data.password, 5)
     //add to db-call
-
+    try {
+        const user = await prismaClient.user.create({
+            data : {
+                email : parsedData.data?.email,
+                name : parsedData.data?.username,
+                password : hashedPwd
+            }
+        })
+        res.json({
+            userId: user.id
+        })
+    } catch {
+        res.status(401).json({
+            message : "Error signing up"
+        })
+    }
+    
 })
 
-app.post("/signin", (req, res) => {
-    const data = SigninSchema.safeParse(req.body)
-    if(!data.success) {
+app.post("/signin", async (req, res) => {
+    const parsedData = SigninSchema.safeParse(req.body)
+    if(!parsedData.success) {
         res.json({
             message : "Invalid Inputs"
         })
         return;
-    }
+    } 
     // Search guy in db with username and check password using bcrypt module
+    const user = await prismaClient.user.findFirst({
+        where : {
+            email : parsedData.data?.email
+        }
+    })
+    if(!user) {
+        res.json({
+            message : "Cant find user with this email"
+        })
+        return;
+    }
+    const checkPwd = bcrypt.compare(parsedData.data.password, user.password)
+    if(!checkPwd) {
+        res.json({
+            message : "Incorrect Password!"
+        })
+        return;
+    }
     // Return jwt token
+    const token = jwt.sign({
+        userId : user.id
+    }, JWT_SECRET)
+    res.json({
+        token
+    })
 })
 
-app.post("/room", middleware, (req, res) => {
-    const data = RoomSchema.safeParse(req.body);
-    if (!data.success) {
+app.post("/room", middleware, async (req, res) => {
+    const parsedData = RoomSchema.safeParse(req.body);
+    if (!parsedData.success) {
         res.json({
         message: "Incorrect Inputs",
         });
         return;
     }
-    res.json({
-        roomId: 123,
-    });
+    //@ts-ignore
+    const userId = req.userId
+    try {
+        const room = await prismaClient.room.create({
+            data : {
+                slug : parsedData.data?.name,
+                adminId : userId
+            }
+        })
+        res.json({
+            roomId : room.id
+        })
+    } catch {
+        res.status(411).json({
+            message : "Try using different name"
+        })
+    }
 })
 
 app.listen(4000, () => {
