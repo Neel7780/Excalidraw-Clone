@@ -39,7 +39,7 @@ wss.on("connection", (socket, request) => {
     socket.on("message", async (data) => {
         let parsedData;  
         if(typeof data !== "string"){
-            parsedData = JSON.parse(data.toString()) // {type : "join-room", roomId : 1}
+            parsedData = JSON.parse(data.toString()) // {type : "join_room", roomId : 1}
         } else {
             parsedData = JSON.parse(data)
         }

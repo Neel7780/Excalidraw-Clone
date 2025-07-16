@@ -6,14 +6,10 @@ import { middleware } from "./middleware";
 import { prismaClient } from "@repo/db/client"
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
+import cors from "cors"
+app.use(cors())
 
 app.use(express.json())
-
-app.get("/", (req, res) => {
-    res.json({
-        "message" : "Welcome!"
-    })
-})
 
 app.post("/signup", async (req, res) => {
     const parsedData = CreateUserSchema.safeParse(req.body);
