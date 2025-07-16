@@ -17,11 +17,11 @@ export default function SignIn () {
       router.push("/")
     }
     return (
-        <div>
-            SIGNIN PAGE
-            <input type="text" placeholder="password" ref={password_ref}/>
-            <input type="text" placeholder="email" ref={email_ref}/>
-            <button onClick={buttonClick}>Submit</button>
+        <div className="h-screen w-screen bg-black flex flex-col justify-center items-center text-4xl">
+            <div className="text-white">SIGNIN PAGE</div>
+            <input className="bg-white mt-8 rounded-2xl p-4 text-xl" type="text" placeholder="Email" ref={email_ref}/>
+            <input className="bg-white mt-8 rounded-2xl p-4 text-xl" type="text" placeholder="Password" ref={password_ref}/>
+            <button className="bg-white mt-8 rounded-2xl p-4 text-xl cursor-pointer" onClick={buttonClick}>Submit</button>
         </div>
     )
 }

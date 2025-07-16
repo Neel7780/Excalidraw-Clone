@@ -20,12 +20,12 @@ export default function SignUp() {
     }
 
     return (
-        <div>
-            SIGNUP PAGE
-            <input type="text" placeholder="username" ref={username_ref} />
-            <input type="text" placeholder="password" ref={password_ref} />
-            <input type="text" placeholder="email" ref={email_ref} />
-            <button onClick={buttonClick}>Submit</button>
+        <div className="h-screen w-screen bg-black flex flex-col justify-center items-center text-4xl">
+            <div className="text-white">SIGNUP PAGE</div>
+            <input className="bg-white mt-8 rounded-2xl p-4 text-xl" type="text" placeholder="username" ref={username_ref} />
+            <input className="bg-white mt-8 rounded-2xl p-4 text-xl" type="text" placeholder="password" ref={password_ref} />
+            <input className="bg-white mt-8 rounded-2xl p-4 text-xl" type="text" placeholder="email" ref={email_ref} />
+            <button className="bg-white mt-8 rounded-2xl p-4 text-xl cursor-pointer" onClick={buttonClick}>Submit</button>
         </div>
     );
 }
