@@ -1,4 +1,3 @@
-
 import axios from "axios"
 import { BACKEND_URL } from "@/app/config";
 
@@ -13,13 +12,18 @@ type Shape = {
     centerX: number;
     centerY: number;
     radius: number;
-} 
-// {
-    // type: "pencil";
-    // startX: number;
-    // startY: number;
-    // length: number;
-// }
+} | {
+    type: "line";
+    startX: number;
+    startY: number;
+    endX: number;
+    endY: number;
+} | {
+    type: "text";
+    startX: number;
+    startY: number;
+    text : string
+}
 
 export async function drawInit (canvas: HTMLCanvasElement, roomId: string, socket: WebSocket) {
     const ctx = canvas.getContext("2d");
@@ -48,6 +52,7 @@ export async function drawInit (canvas: HTMLCanvasElement, roomId: string, socke
         clicked = true;
         startX = e.clientX
         startY = e.clientY
+        
     })
 
     canvas.addEventListener("mouseup", (e) => {
@@ -74,6 +79,21 @@ export async function drawInit (canvas: HTMLCanvasElement, roomId: string, socke
                 radius: Math.abs(radius),
                 centerX: startX + radius,
                 centerY: startY + radius,
+            }
+        } else if (selectedTool === "line") {
+            shape = {
+                type: "line",
+                startX,
+                startY,
+                endX: e.clientX,
+                endY: e.clientY
+            }
+        } else if (selectedTool === "text") {
+            shape = {
+                type : "text",
+                startX,
+                startY,
+                text : ''
             }
         }
 
@@ -110,6 +130,16 @@ export async function drawInit (canvas: HTMLCanvasElement, roomId: string, socke
                 ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
                 ctx.stroke();
                 ctx.closePath();                
+            } else if (selectedTool === "line") {
+                ctx.beginPath();
+                ctx.moveTo(startX, startY);
+                ctx.lineTo(e.clientX, e.clientY);
+                ctx.stroke();
+            } else if (selectedTool === "text") {
+                ctx.beginPath();
+                ctx.moveTo(startX, startY);
+                ctx.lineTo(e.clientX, e.clientY);
+                ctx.stroke();
             }
         }
     })
@@ -131,6 +161,11 @@ function clearCanvas(existingShapes: Shape[], canvas: HTMLCanvasElement, ctx: Ca
             ctx.arc(shape.centerX, shape.centerY, shape.radius, 0, Math.PI * 2);
             ctx.stroke();
             ctx.closePath();                
+        } else if (shape.type === "line") {
+            ctx.beginPath();
+            ctx.moveTo(shape.startX, shape.startY);
+            ctx.lineTo(shape.endX, shape.endY);
+            ctx.stroke();
         }
     })
 }

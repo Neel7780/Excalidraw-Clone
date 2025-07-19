@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 export default function Home() {
   const [rooms, setRooms] = useState<any[]>([]);
   const [showModal, setShowModal] = useState(false);
-  const inputRef = useRef(null)
+  const inputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
 
   async function slugtoId (slug: string) {
@@ -26,6 +26,9 @@ export default function Home() {
 
   async function enterRoomSubmit () {
     const slug = inputRef.current?.value;
+    if (!slug) {
+      return;
+    }
     const roomId = await slugtoId(slug);
     router.push(`/canvas/${roomId}`);
   }

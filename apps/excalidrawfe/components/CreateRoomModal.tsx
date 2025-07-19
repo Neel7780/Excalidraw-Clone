@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { useRef } from "react"
 
 export default function CreateRoomModal() {
-    const inputRef = useRef(null)
+    const inputRef = useRef<HTMLInputElement>(null)
     const router = useRouter()
 
     async function slugtoId (slug: string) {
@@ -24,7 +24,11 @@ export default function CreateRoomModal() {
             },
           }
         );
-        const roomId = slugtoId(inputRef.current?.value)
+        const roomName = inputRef.current?.value;
+        if (!roomName) {
+          return;
+        }
+        const roomId = await slugtoId(roomName);
         router.push(`/canvas/${roomId}`)
     }
 

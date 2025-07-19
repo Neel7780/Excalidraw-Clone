@@ -16,16 +16,28 @@ export function Pencil () {
 
 export function Rect () {
     return (
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 122.88 83.69" width="16" height="16" fill="currentColor">
-            <rect x="0" y="0" width="122.88" height="83.69" rx="8.86" />
-        </svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="#FFF" stroke="#000" strokeWidth="2" d="M4 4h16v16H4z"></path></svg>
     )
 }
 
 export function Circle () {
     return (
-        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor">
-            <circle cx="50" cy="50" r="50" />
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="#FFF" stroke="#000" strokeWidth="2"></circle></svg>
+    )
+}
+
+export function Line () {
+    return (
+        <svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+            <line x1="2" y1="8" x2="14" y2="8" stroke="currentColor" strokeWidth="2" />
+        </svg>
+    )
+}
+
+export function Text () {
+    return (
+        <svg className="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" viewBox="0 0 24 24">
+            <path stroke="currentColor" strokeLinecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6.2V5h11v1.2M8 5v14m-3 0h6m2-6.8V11h8v1.2M17 11v8m-1.5 0h3"/>
         </svg>
     )
 }

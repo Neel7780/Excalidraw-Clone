@@ -2,15 +2,16 @@
 
 import { drawInit } from "@/draw";
 import { useEffect, useRef, useState } from "react";
-import { Circle, Icons, Pencil, Rect } from "./IconButton'";
+import { Circle, Icons, Line, Pencil, Rect, Text } from "./IconButton'";
+import { Textinput } from "@/draw/drawText";
 
-export type Tool = "circle" | "rect" | "pencil";
+export type Tool = "circle" | "rect" | "pencil" | "line" | "text";
 
 export default function Canvas({roomId, socket} : {roomId : string, socket : WebSocket}) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [selectedTool, setSelectedTool] = useState<Tool>("circle")
 
-    useEffect(()=>{
+    useEffect(()=> {
         // @ts-ignore
         window.selectedTool = selectedTool  //storing it in a global variable is not a good practice, improve it!!
     },[selectedTool])
@@ -25,6 +26,7 @@ export default function Canvas({roomId, socket} : {roomId : string, socket : Web
     return <div className="block overflow-hidden h-screen w-screen">
         <canvas ref={canvasRef} width={window.innerWidth} height={window.innerHeight}></canvas>
         <Topbar selectedTool={selectedTool} setSelectedTool={setSelectedTool} />
+        {selectedTool==="text" && <Textinput/>}
     </div>
 }
 
@@ -38,6 +40,8 @@ function Topbar ({selectedTool, setSelectedTool}: {
                 <Icons icon = {<Pencil />} selected={selectedTool==="pencil"} onClick={() => {setSelectedTool("pencil")}} />
                 <Icons icon = {<Rect />} selected={selectedTool==="rect"} onClick={() => {setSelectedTool("rect")}} />
                 <Icons icon = {<Circle />} selected={selectedTool==="circle"} onClick={() => {setSelectedTool("circle")}} />
+                <Icons icon = {<Line />} selected={selectedTool==="line"} onClick={() => {setSelectedTool("line")}} />
+                <Icons icon = {<Text />} selected={selectedTool==="text"} onClick={() => {setSelectedTool("text")}} />
             </div>
         </div>
     )
