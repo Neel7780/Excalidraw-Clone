@@ -25,7 +25,7 @@ type Shape = {
     text : string
 }
 
-export async function drawInit (canvas: HTMLCanvasElement, roomId: string, socket: WebSocket) {
+export async function drawInit (canvas: HTMLCanvasElement, roomId: string, socket: WebSocket, handlePlaceText: (x: number, y: number) => void) {
     const ctx = canvas.getContext("2d");
 
     let existingShapes: Shape[] = await getExistingShapes(roomId)
@@ -33,11 +33,17 @@ export async function drawInit (canvas: HTMLCanvasElement, roomId: string, socke
     if(!ctx) { return; }
 
     socket.onmessage = (event) => {
+        console.log("Received WebSocket message:", event.data);
         const message = JSON.parse(event.data);
 
         if (message.type == "chat") {
             const parsedShape = JSON.parse(message.message)
             existingShapes.push(parsedShape.shape)
+            console.log("Added chat shape:", parsedShape.shape);
+            clearCanvas(existingShapes, canvas, ctx);
+        } else if (message.type === "shape") { 
+            existingShapes.push(message.shape);
+            console.log("Added shape:", message.shape);
             clearCanvas(existingShapes, canvas, ctx);
         }
     }
@@ -89,12 +95,8 @@ export async function drawInit (canvas: HTMLCanvasElement, roomId: string, socke
                 endY: e.clientY
             }
         } else if (selectedTool === "text") {
-            shape = {
-                type : "text",
-                startX,
-                startY,
-                text : ''
-            }
+            handlePlaceText(e.clientX, e.clientY);
+            return;
         }
 
         if (!shape) {
@@ -104,10 +106,8 @@ export async function drawInit (canvas: HTMLCanvasElement, roomId: string, socke
         existingShapes.push(shape);
 
         socket.send(JSON.stringify({
-            type: "chat",
-            message: JSON.stringify({
-                shape
-            }),
+            type: "shape",
+            shape,
             roomId
         }))
     })
@@ -147,6 +147,7 @@ export async function drawInit (canvas: HTMLCanvasElement, roomId: string, socke
 }
 
 function clearCanvas(existingShapes: Shape[], canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) {
+    console.log("Clearing and redrawing canvas. Shapes to draw:", existingShapes);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "rgba(0, 0, 0)"
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -166,6 +167,10 @@ function clearCanvas(existingShapes: Shape[], canvas: HTMLCanvasElement, ctx: Ca
             ctx.moveTo(shape.startX, shape.startY);
             ctx.lineTo(shape.endX, shape.endY);
             ctx.stroke();
+        } else if (shape.type === "text") {
+            ctx.fillStyle = "white";
+            ctx.font = "20px Arial";
+            ctx.fillText(shape.text, shape.startX, shape.startY);
         }
     })
 }

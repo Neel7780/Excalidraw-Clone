@@ -55,6 +55,7 @@ wss.on("connection", (socket, request) => {
             user.rooms = user?.rooms.filter(x => x === parsedData.room)
         }
         if(parsedData.type === "chat") {
+            console.log("Received chat message:", parsedData);
             const roomId = parsedData.roomId;
             const message = parsedData.message;
             users.forEach(user => {
@@ -69,6 +70,27 @@ wss.on("connection", (socket, request) => {
                 data: {
                     roomId: Number(roomId),
                     message,
+                    userId
+                }
+            });
+        } else if (parsedData.type === "shape") {
+            console.log("Received shape message:", parsedData);
+            const roomId = parsedData.roomId;
+            const shape = parsedData.shape;
+            users.forEach(user => {
+                if(user.rooms.includes(roomId)){
+                    console.log("Broadcasting shape to user in room:", roomId);
+                    user.ws.send(JSON.stringify({
+                        type: "shape",
+                        shape : shape,
+                        roomId : roomId
+                    }))
+                }
+            })
+            await prismaClient.chat.create({
+                data: {
+                    roomId: Number(roomId),
+                    message: JSON.stringify({ shape }), // Store shape as a JSON string in the message field
                     userId
                 }
             });
