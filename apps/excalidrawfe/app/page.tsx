@@ -6,16 +6,15 @@ import { useEffect, useState } from "react";
 export default function Home() {
   const [userExists, setUserExists] = useState<boolean | null>(null);
   const router = useRouter()
-  const token_checker = () => { localStorage.getItem("token") }
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     setUserExists(!!token);
-    setInterval(token_checker, 200)
-  }, [token_checker]);
+  }, []);
 
   function logoutClick() {
     localStorage.removeItem("token")
+    router.push("/")
   }
 
   return (

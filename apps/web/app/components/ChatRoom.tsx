@@ -3,8 +3,8 @@ import { BACKEND_URL } from "../config";
 import { ChatRoomClient } from "./chatRoomClient";
 
 async function getChats(roomId:string) {
-    const messages = await axios.get(`${BACKEND_URL}/chats/${roomId}`)
-    return messages.data.messages
+    const response = await axios.get(`${BACKEND_URL}/chats/${roomId}`)
+    return response.data.messages
 }
 
 export async function ChatRoom ({roomId} : {

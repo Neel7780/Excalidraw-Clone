@@ -14,6 +14,12 @@ type Shape = {
     centerY: number;
     radius: number;
 } 
+// {
+    // type: "pencil";
+    // startX: number;
+    // startY: number;
+    // length: number;
+// }
 
 export async function drawInit (canvas: HTMLCanvasElement, roomId: string, socket: WebSocket) {
     const ctx = canvas.getContext("2d");
@@ -65,7 +71,7 @@ export async function drawInit (canvas: HTMLCanvasElement, roomId: string, socke
             const radius = Math.max(width, height) / 2;
             shape = {
                 type: "circle",
-                radius: radius,
+                radius: Math.abs(radius),
                 centerX: startX + radius,
                 centerY: startY + radius,
             }
@@ -119,7 +125,8 @@ function clearCanvas(existingShapes: Shape[], canvas: HTMLCanvasElement, ctx: Ca
         if (shape.type === "rect") {
             ctx.strokeStyle = "rgba(255, 255, 255)"
             ctx.strokeRect(shape.x, shape.y, shape.width, shape.height);
-        } else if (shape.type === "circle") {
+        } 
+        else if (shape.type === "circle") {
             ctx.beginPath();
             ctx.arc(shape.centerX, shape.centerY, shape.radius, 0, Math.PI * 2);
             ctx.stroke();
