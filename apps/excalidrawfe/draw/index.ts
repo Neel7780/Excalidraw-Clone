@@ -79,12 +79,16 @@ export async function drawInit (canvas: HTMLCanvasElement, roomId: string, socke
                 width
             }
         } else if (selectedTool === "circle") {
-            const radius = Math.max(width, height) / 2;
+            const absWidth = Math.abs(width);
+            const absHeight = Math.abs(height);
+            const radius = Math.max(absWidth, absHeight) / 2;
+            const centerX = startX + (width < 0 ? -radius : radius);
+            const centerY = startY + (height < 0 ? -radius : radius);
             shape = {
                 type: "circle",
-                radius: Math.abs(radius),
-                centerX: startX + radius,
-                centerY: startY + radius,
+                radius: radius,
+                centerX: centerX,
+                centerY: centerY,
             }
         } else if (selectedTool === "line") {
             shape = {
@@ -123,9 +127,11 @@ export async function drawInit (canvas: HTMLCanvasElement, roomId: string, socke
             if (selectedTool === "rect") {
                 ctx.strokeRect(startX, startY, width, height);   
             } else if (selectedTool === "circle") {
-                const radius = Math.max(width, height) / 2;
-                const centerX = startX + radius;
-                const centerY = startY + radius;
+                const absWidth = Math.abs(width);
+                const absHeight = Math.abs(height);
+                const radius = Math.max(absWidth, absHeight) / 2;
+                const centerX = startX + (width < 0 ? -radius : radius);
+                const centerY = startY + (height < 0 ? -radius : radius);
                 ctx.beginPath();
                 ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
                 ctx.stroke();
