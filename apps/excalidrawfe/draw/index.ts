@@ -23,6 +23,9 @@ type Shape = {
     startX: number;
     startY: number;
     text : string
+} | {
+    type: "pencil";
+    points: { x: number, y: number }[];
 }
 
 export async function drawInit (canvas: HTMLCanvasElement, roomId: string, socket: WebSocket, handlePlaceText: (x: number, y: number) => void) {
@@ -38,31 +41,47 @@ export async function drawInit (canvas: HTMLCanvasElement, roomId: string, socke
 
         if (message.type == "chat") {
             const parsedShape = JSON.parse(message.message)
-            existingShapes.push(parsedShape.shape)
-            console.log("Added chat shape:", parsedShape.shape);
-            clearCanvas(existingShapes, canvas, ctx);
+            if (parsedShape.shape) {
+                existingShapes.push(parsedShape.shape)
+                console.log("Added chat shape:", parsedShape.shape);
+                clearCanvas(existingShapes, canvas, ctx);
+            }
         } else if (message.type === "shape") { 
-            existingShapes.push(message.shape);
-            console.log("Added shape:", message.shape);
-            clearCanvas(existingShapes, canvas, ctx);
+            if (message.shape) {
+                existingShapes.push(message.shape);
+                console.log("Added shape:", message.shape);
+                clearCanvas(existingShapes, canvas, ctx);
+            }
         }
     }
 
     clearCanvas(existingShapes, canvas, ctx)
     
-    let clicked = false;
+    let drawing = false;
     let startX = 0;
     let startY = 0;
+    let lastMouseX = 0;
+    let lastMouseY = 0;
+    let currentPencilStroke: { x: number, y: number }[] = [];
+
 
     canvas.addEventListener("mousedown", (e) => {
-        clicked = true;
-        startX = e.clientX
-        startY = e.clientY
+        drawing = true;
+        const mouseX = e.clientX;
+        const mouseY = e.clientY;
+        startX = mouseX;
+        startY = mouseY;
         
+        // @ts-ignore
+        if (window.selectedTool === 'pencil') {
+            lastMouseX = mouseX;
+            lastMouseY = mouseY;
+            currentPencilStroke = [{ x: mouseX, y: mouseY }];
+        }
     })
 
     canvas.addEventListener("mouseup", (e) => {
-        clicked = false;
+        drawing = false;
         const width = e.clientX - startX;
         const height = e.clientY - startY;
 
@@ -70,7 +89,6 @@ export async function drawInit (canvas: HTMLCanvasElement, roomId: string, socke
         const selectedTool = window.selectedTool;
         let shape: Shape | null = null;
         if (selectedTool === "rect") {
-
             shape = {
                 type: "rect",
                 x: startX,
@@ -101,6 +119,13 @@ export async function drawInit (canvas: HTMLCanvasElement, roomId: string, socke
         } else if (selectedTool === "text") {
             handlePlaceText(e.clientX, e.clientY);
             return;
+        } else if (selectedTool === "pencil") {
+            if (currentPencilStroke.length > 0) {
+                shape = {
+                    type: "pencil",
+                    points: currentPencilStroke
+                }
+            }
         }
 
         if (!shape) {
@@ -108,6 +133,10 @@ export async function drawInit (canvas: HTMLCanvasElement, roomId: string, socke
         }
 
         existingShapes.push(shape);
+
+        if (selectedTool === 'pencil') {
+            clearCanvas(existingShapes, canvas, ctx);
+        }
 
         socket.send(JSON.stringify({
             type: "shape",
@@ -117,13 +146,32 @@ export async function drawInit (canvas: HTMLCanvasElement, roomId: string, socke
     })
 
     canvas.addEventListener("mousemove", (e) => {
-        if(clicked) {
+        if(!drawing) return;
+
+        // @ts-ignore
+        const selectedTool = window.selectedTool;
+
+        if (selectedTool === 'pencil') {
+            const mouseX = e.clientX;
+            const mouseY = e.clientY;
+            
+            ctx.beginPath();
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 3;
+            ctx.moveTo(lastMouseX, lastMouseY);
+            ctx.lineTo(mouseX, mouseY);
+            ctx.lineJoin = ctx.lineCap = 'round';
+            ctx.stroke();
+
+            lastMouseX = mouseX;
+            lastMouseY = mouseY;
+            currentPencilStroke.push({ x: mouseX, y: mouseY });
+        } else {
             const width = e.clientX - startX
             const height = e.clientY - startY
             clearCanvas(existingShapes, canvas, ctx);
             ctx.strokeStyle = "rgba(255, 255, 255)"
-            // @ts-ignore
-            const selectedTool = window.selectedTool;
             if (selectedTool === "rect") {
                 ctx.strokeRect(startX, startY, width, height);   
             } else if (selectedTool === "circle") {
@@ -158,7 +206,8 @@ function clearCanvas(existingShapes: Shape[], canvas: HTMLCanvasElement, ctx: Ca
     ctx.fillStyle = "rgba(0, 0, 0)"
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    existingShapes.map((shape) => {
+    existingShapes.forEach((shape) => {
+        if (!shape) return;
         if (shape.type === "rect") {
             ctx.strokeStyle = "rgba(255, 255, 255)"
             ctx.strokeRect(shape.x, shape.y, shape.width, shape.height);
@@ -177,6 +226,18 @@ function clearCanvas(existingShapes: Shape[], canvas: HTMLCanvasElement, ctx: Ca
             ctx.fillStyle = "white";
             ctx.font = "20px Arial";
             ctx.fillText(shape.text, shape.startX, shape.startY);
+        } else if (shape.type === "pencil") {
+            if (shape.points && shape.points.length > 1) {
+                ctx.beginPath();
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 3;
+                ctx.lineJoin = ctx.lineCap = 'round';
+                ctx.moveTo(shape.points[0].x, shape.points[0].y);
+                for (let i = 1; i < shape.points.length; i++) {
+                    ctx.lineTo(shape.points[i].x, shape.points[i].y);
+                }
+                ctx.stroke();
+            }
         }
     })
 }
@@ -186,9 +247,13 @@ async function getExistingShapes(roomId: string) {
     const messages = res.data.messages;
 
     const shapes = messages.map((x: {message: string}) => {
-        const messageData = JSON.parse(x.message)
-        return messageData.shape;
-    })
+        try {
+            const messageData = JSON.parse(x.message)
+            return messageData.shape;
+        } catch (e) {
+            return null;
+        }
+    }).filter(Boolean);
 
     return shapes;
 }
