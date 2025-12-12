@@ -5,9 +5,10 @@ import { BACKEND_URL } from "../config";
 import { useRouter } from "next/navigation";
 
 export default function SignUp() {
-    const username_ref = useRef(null);
-    const password_ref = useRef(null);
-    const email_ref = useRef(null);
+    // 1. Add <HTMLInputElement> so TS knows these refs refer to input elements
+    const username_ref = useRef<HTMLInputElement>(null);
+    const password_ref = useRef<HTMLInputElement>(null);
+    const email_ref = useRef<HTMLInputElement>(null);
     const router = useRouter();
 
     async function buttonClick() {
@@ -23,7 +24,8 @@ export default function SignUp() {
         <div className="h-screen w-screen bg-black flex flex-col justify-center items-center text-4xl">
             <div className="text-white">SIGNUP PAGE</div>
             <input className="bg-white mt-8 rounded-2xl p-4 text-xl" type="text" placeholder="username" ref={username_ref} />
-            <input className="bg-white mt-8 rounded-2xl p-4 text-xl" type="text" placeholder="password" ref={password_ref} />
+            {/* Note: changed type to "password" for security */}
+            <input className="bg-white mt-8 rounded-2xl p-4 text-xl" type="password" placeholder="password" ref={password_ref} />
             <input className="bg-white mt-8 rounded-2xl p-4 text-xl" type="text" placeholder="email" ref={email_ref} />
             <button className="bg-white mt-8 rounded-2xl p-4 text-xl cursor-pointer" onClick={buttonClick}>Submit</button>
         </div>

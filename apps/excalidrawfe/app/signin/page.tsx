@@ -5,8 +5,8 @@ import { BACKEND_URL } from "../config";
 import { useRouter } from "next/navigation";
 
 export default function SignIn () {
-    const password_ref = useRef(null);
-    const email_ref = useRef(null);
+  const password_ref = useRef<HTMLInputElement | null>(null);
+  const email_ref = useRef<HTMLInputElement | null>(null);
     const router = useRouter();
     async function buttonClick() {
       const response = await axios.post(`${BACKEND_URL}/signin`, {
